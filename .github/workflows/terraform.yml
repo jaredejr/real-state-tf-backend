@@ -3,10 +3,10 @@ name: 'Terraform Backend Management CI/CD'
 on:
   push:
     branches:
-      - main # Ou sua branch principal
+      - master # Ou sua branch principal
   pull_request:
     branches:
-      - main # Ou sua branch principal
+      - master # Ou sua branch principal
 
 permissions:
   id-token: write   # Necessário para autenticação OIDC com AWS
@@ -82,5 +82,5 @@ jobs:
       #       })
 
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false tfplan
