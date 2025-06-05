@@ -2,11 +2,11 @@ name: 'Terraform Backend Management CI/CD'
 
 on:
   push:
-    branches:
-      - master # Ou sua branch principal
+    branches-ignore:
+      - development # Não rodar em pushes para a branch development
   pull_request:
     branches:
-      - master # Ou sua branch principal
+      - master # Rodar em PRs para a branch master
 
 permissions:
   id-token: write   # Necessário para autenticação OIDC com AWS
