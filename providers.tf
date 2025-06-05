@@ -10,6 +10,5 @@ terraform {
 }
 
 provider "aws" {
-  profile = "development"
   region  = var.aws_region
 }
