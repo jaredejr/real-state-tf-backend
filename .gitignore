@@ -1,0 +1,23 @@
+# Arquivos de estado local e backups
+*.tfstate
+*.tfstate.*.backup
+
+# Arquivos de log de crash
+crash.log
+crash.*.log
+
+# Diretório .terraform que contém módulos e plugins baixados
+.terraform/
+
+# Arquivos .tfvars (se contiverem segredos) - opcional, mas recomendado para variáveis sensíveis
+# *.tfvars
+
+# Arquivos de substituição
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Arquivos de configuração da CLI
+.terraformrc
+terraform.rc
