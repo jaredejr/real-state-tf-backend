@@ -1,0 +1,86 @@
+name: 'Terraform Backend Management CI/CD'
+
+on:
+  push:
+    branches:
+      - main # Ou sua branch principal
+  pull_request:
+    branches:
+      - main # Ou sua branch principal
+
+permissions:
+  id-token: write   # Necessário para autenticação OIDC com AWS
+  contents: read    # Necessário para checkout do código
+  pull-requests: write # Para adicionar comentários de plano em PRs (opcional)
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    env:
+      # Estas variáveis são usadas pelos recursos em main.tf
+      TF_VAR_s3_bucket_name: ${{ secrets.S3_BUCKET_NAME }}
+      TF_VAR_aws_region: ${{ secrets.AWS_REGION }} # Ex: us-east-1
+      AWS_REGION: ${{ secrets.AWS_REGION }} # Usado pela action aws-actions/configure-aws-credentials
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS Credentials via OIDC
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }} # ARN do seu IAM Role para GitHub Actions
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ">= 1.0" # Mantenha sincronizado com providers.tf
+
+    - name: Terraform Init
+      id: init
+      run: terraform init
+
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate
+
+    - name: Terraform Plan
+      id: plan
+      # Executa o plan em todos os pushes para PRs e também antes do apply na branch principal
+      run: terraform plan -no-color -input=false -out=tfplan
+      # Opcional: Adicionar um comentário ao PR com o output do plano
+      # if: github.event_name == 'pull_request'
+      # uses: actions/github-script@v6
+      # with:
+      #   github-token: ${{ secrets.GITHUB_TOKEN }}
+      #   script: |
+      #     const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+      #       #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+      #       #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+      #       <details><summary>Validation Output</summary>
+      #
+      #       \`\`\`diff
+      #       ${{ steps.validate.outputs.stdout }}
+      #       \`\`\`
+      #
+      #       </details>
+      #       #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+      #       <details><summary>Show Plan</summary>
+      #
+      #       \`\`\`diff
+      #       ${process.env.PLAN}
+      #       \`\`\`
+      #
+      #       </details>`;
+      #       github.rest.issues.createComment({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: output
+      #       })
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve -input=false tfplan

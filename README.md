@@ -6,9 +6,7 @@ Ele cria:
     - Versionamento habilitado.
     - Criptografia padrão SSE-S3 habilitada.
     - Acesso público bloqueado.
-2.  Uma tabela AWS DynamoDB para bloqueio de estado do Terraform, garantindo que apenas uma operação de escrita ocorra por vez.
-    - Chave primária: `LockID` (String).
-    - Modo de capacidade: `PAY_PER_REQUEST`.
+    - Bloqueio de estado (state locking) é gerenciado nativamente pelo S3.
 
 ## Pré-requisitos
 
@@ -24,15 +22,12 @@ Ele cria:
     As variáveis necessárias são:
     *   `s3_bucket_name`: O nome globalmente único para o seu bucket S3.
         Exemplo: `s3_bucket_name = "meu-tf-backend-estados-12345abc"`
-    *   `dynamodb_table_name`: O nome para a sua tabela DynamoDB.
-        Exemplo: `dynamodb_table_name = "meu-tf-backend-locks"`
     *   `aws_region` (opcional, padrão: "us-east-1"): A região AWS onde os recursos serão criados.
         Exemplo: `aws_region = "sa-east-1"`
 
     Exemplo de arquivo `terraform.tfvars`:
     ```hcl
     s3_bucket_name      = "seu-nome-de-bucket-unico-aqui"
-    dynamodb_table_name = "terraform-state-locks"
     aws_region          = "us-east-1"
     ```
 
@@ -57,8 +52,9 @@ Ele cria:
 
 ## Usando o Backend em Outros Projetos Terraform
 
-Após aplicar este projeto, você receberá os nomes do bucket S3 e da tabela DynamoDB como saídas.
-Use esses valores para configurar o bloco `backend "s3"` em seus outros projetos Terraform:
+Após aplicar este projeto, você receberá o nome do bucket S3 como saída.
+Use este valor para configurar o bloco `backend "s3"` em seus outros projetos Terraform. O bloqueio de estado será tratado nativamente pelo S3, desde que `use_lockfile = true` esteja configurado no backend do projeto consumidor.
+
 
 ```terraform
 terraform {
@@ -66,8 +62,8 @@ terraform {
     bucket         = "NOME_DO_BUCKET_S3_CRIADO" # Substitua pelo valor de output s3_bucket_name
     key            = "caminho/para/seu/estado.tfstate" # Ex: networking/terraform.tfstate
     region         = "SUA_REGIAO_AWS" # Ex: us-east-1
-    dynamodb_table = "NOME_DA_TABELA_DYNAMODB_CRIADA" # Substitua pelo valor de output dynamodb_table_name
     encrypt        = true
+    use_lockfile   = true
   }
 }
 ```
