@@ -1,6 +1,6 @@
 # Projeto de Gerenciamento de Backend Terraform
 
-Este projeto Terraform provisiona os recursos AWS necessários para servir como backend para outros projetos Terraform. "teste - dev"
+Este projeto Terraform provisiona os recursos AWS necessários para servir como backend para outros projetos Terraform.
 Ele cria:
 1.  Um bucket AWS S3 para armazenar arquivos de estado (`.tfstate`) do Terraform.
     - Versionamento habilitado.
