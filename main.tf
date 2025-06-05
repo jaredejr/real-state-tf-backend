@@ -6,6 +6,10 @@ resource "aws_s3_bucket" "terraform_state_storage" {
     Environment = "Backend"
     ManagedBy   = "Terraform"
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket_versioning" "terraform_state_storage_versioning" {
